@@ -108,5 +108,5 @@ app = Application.app
 server = Application.app.server
 
 if __name__ == "__main__":
-    # Application.app.run(port=6969, dev_tools_ui=True, debug=True, host="127.0.0.1")
-    Application.app.run()
+    Application.app.run(port=6969, dev_tools_ui=True, debug=True, host="127.0.0.1")
+    # Application.app.run()
