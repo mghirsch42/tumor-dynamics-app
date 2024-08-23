@@ -1,4 +1,3 @@
-import pandas as pd
 import numpy as np
 import warnings
 from scipy.integrate import odeint
@@ -20,9 +19,10 @@ class MainApplication:
 
     def set_layout(self):
         # Initial figure
-        df = self.run(0.135, 0.11, 0.15, -0.2, -0.5, -0.1, 10, 30, 0.1, 0.9)
-        fig = px.line(df, x="Time", y="Size", color="Subline")
-        
+        sol = self.run(0.135, 0.11, 0.15, -0.2, -0.5, -0.1, 10, 30, 0.1, 0.9)
+        t = np.arange(0, 30, 1)
+        fig = px.line(x=t, y=[sol[:,0], sol[:,1]])  
+
         self.app.layout = [
             dcc.Graph(figure=fig, id="plot"),
             html.Div(html.Label("C1 Growth Rate")),
@@ -60,8 +60,9 @@ class MainApplication:
         Input(component_id="c11_slider", component_property="value")
         )
         def update_graph(g1, g11, nude_k, nude_m, b6_k, b6_m, switch_time, end_time, c1, c11):
-            df = self.run(g1, g11, nude_k, nude_m, b6_k, b6_m, switch_time, end_time, c1, c11)
-            fig = px.line(df, x="Time", y="Size", color="Subline")
+            sol = self.run(g1, g11, nude_k, nude_m, b6_k, b6_m, switch_time, end_time, c1, c11)
+            t = np.arange(0, end_time, 1)
+            fig = px.line(x=t, y=[sol[:,0], sol[:,1]])
             return fig
 
 
@@ -95,12 +96,7 @@ class MainApplication:
         sol1 = self.est_ode(self.game, [c1_init, c11_init], switch_time+1, g1, g11, nude_k, nude_m)
         # Change k and m and continue the game
         sol2 = self.est_ode(self.game, [sol1[-1,0], sol1[-1,1]], end_time-switch_time, g1, g11, b6_k, b6_m)
-        df = pd.DataFrame(columns=["Time", "C1", "C11"])
-        df["Time"] = np.arange(0, end_time, 1)
-        df["C1"] = np.concatenate([sol1[:,0], sol2[1:,0]])
-        df["C11"] = np.concatenate([sol1[:,1], sol2[1:,1]])
-        df = df.melt(id_vars="Time", value_vars=["C1", "C11"], var_name="Subline", value_name="Size")
-        return df  
+        return np.concatenate([sol1, sol2[1:,:]])
 
 Application = MainApplication()
 app = Application.app
