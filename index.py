@@ -1,4 +1,3 @@
-import numpy as np
 import warnings
 from scipy.integrate import odeint
 import sys
@@ -19,9 +18,9 @@ class MainApplication:
 
     def set_layout(self):
         # Initial figure
-        sol = self.run(0.135, 0.11, 0.15, -0.2, -0.5, -0.1, 10, 30, 0.1, 0.9)
-        t = np.arange(0, 30, 1)
-        fig = px.line(x=t, y=[sol[:,0], sol[:,1]])  
+        sol_c1, sol_c11 = self.run(0.135, 0.11, 0.15, -0.2, -0.5, -0.1, 10, 30, 0.1, 0.9)
+        t = list(range(0, 30, 1))
+        fig = px.line(x=t, y=[sol_c1, sol_c11])  
 
         self.app.layout = [
             dcc.Graph(figure=fig, id="plot"),
@@ -60,9 +59,9 @@ class MainApplication:
         Input(component_id="c11_slider", component_property="value")
         )
         def update_graph(g1, g11, nude_k, nude_m, b6_k, b6_m, switch_time, end_time, c1, c11):
-            sol = self.run(g1, g11, nude_k, nude_m, b6_k, b6_m, switch_time, end_time, c1, c11)
-            t = np.arange(0, end_time, 1)
-            fig = px.line(x=t, y=[sol[:,0], sol[:,1]])
+            sol_c1, sol_c11 = self.run(g1, g11, nude_k, nude_m, b6_k, b6_m, switch_time, end_time, c1, c11)
+            t = list(range(0, end_time, 1))
+            fig = px.line(x=t, y=[sol_c1, sol_c11])
             return fig
 
 
@@ -77,7 +76,7 @@ class MainApplication:
     # Method to estimate the game over time. Error catching for when a solution can't be reached.
     # If a solution can't be reached, reduce the time scale and try again.
     def est_ode(self, game, init, max_time, g1, g11, k, m):
-        t = np.arange(0, max_time, 1)
+        t = list(range(0, max_time, 1))
         success = False
         while(success==False):
             with warnings.catch_warnings(record=True):
@@ -96,7 +95,7 @@ class MainApplication:
         sol1 = self.est_ode(self.game, [c1_init, c11_init], switch_time+1, g1, g11, nude_k, nude_m)
         # Change k and m and continue the game
         sol2 = self.est_ode(self.game, [sol1[-1,0], sol1[-1,1]], end_time-switch_time, g1, g11, b6_k, b6_m)
-        return np.concatenate([sol1, sol2[1:,:]])
+        return sol1[:,0].tolist() + sol2[1:,0].tolist(), sol1[:,1].tolist() + sol2[1:,1].tolist()
 
 Application = MainApplication()
 app = Application.app
